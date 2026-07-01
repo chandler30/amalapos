@@ -1,6 +1,7 @@
 'use client'
 import { useCallback, useEffect, useState } from 'react'
 import { supabase } from '@/lib/supabase'
+import { useSede } from '@/lib/sede'
 import type { Alerta } from '@/lib/constants'
 import { useToast, Spinner, EmptyState, PageHeader } from '@/components/ui'
 import { IconChat } from '@/components/icons'
@@ -19,18 +20,24 @@ function Pill({ active, onClick, children }: { active: boolean; onClick: () => v
 
 export default function AlertasPage() {
   const toast = useToast()
+  const { sedeId } = useSede()
   const [alertas, setAlertas] = useState<Alerta[]>([])
   const [loading, setLoading] = useState(true)
   const [soloPendientes, setSoloPendientes] = useState(true)
 
   const fetchAlertas = useCallback(async () => {
-    const { data, error } = await supabase.from('alertas').select('*')
+    if (!sedeId) return
+    const { data, error } = await supabase.from('alertas').select('*').eq('sede_id', sedeId)
       .order('created_at', { ascending: false }).limit(200)
     if (!error && data) setAlertas(data as Alerta[])
     setLoading(false)
-  }, [])
+  }, [sedeId])
 
-  useEffect(() => { fetchAlertas() }, [fetchAlertas])
+  useEffect(() => {
+    if (!sedeId) return
+    setLoading(true)
+    fetchAlertas()
+  }, [fetchAlertas, sedeId])
 
   /* Portado de attendAlert */
   async function atender(a: Alerta) {

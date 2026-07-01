@@ -1,6 +1,7 @@
 'use client'
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { supabase } from '@/lib/supabase'
+import { useSede } from '@/lib/sede'
 import { ESTADOS, PAGOS_ANTICIPADOS, type Pedido, type Alerta } from '@/lib/constants'
 import { fmtMoney, elapsedFrom, hoyISO } from '@/lib/format'
 import { playSound } from '@/lib/sound'
@@ -122,6 +123,7 @@ function OrderCard({ pedido: o, onVer, refresh }: { pedido: Pedido; onVer: () =>
 /* ── Página principal: dashboard en vivo ── */
 export default function DashboardPage() {
   const toast = useToast()
+  const { sedeId } = useSede()
   const [pedidos, setPedidos] = useState<Pedido[]>([])
   const [alertas, setAlertas] = useState<Alerta[]>([])
   const [loading, setLoading] = useState(true)
@@ -129,9 +131,10 @@ export default function DashboardPage() {
   const seenIds = useRef<Set<string> | null>(null)
 
   const fetchAll = useCallback(async () => {
+    if (!sedeId) return
     const [ped, al] = await Promise.all([
-      supabase.from('pedidos').select('*').order('created_at', { ascending: false }).limit(100),
-      supabase.from('alertas').select('*').order('created_at', { ascending: false }).limit(100),
+      supabase.from('pedidos').select('*').eq('sede_id', sedeId).order('created_at', { ascending: false }).limit(100),
+      supabase.from('alertas').select('*').eq('sede_id', sedeId).order('created_at', { ascending: false }).limit(100),
     ])
     if (!ped.error && ped.data) {
       const rows = ped.data as Pedido[]
@@ -150,13 +153,16 @@ export default function DashboardPage() {
     }
     if (!al.error && al.data) setAlertas(al.data as Alerta[])
     setLoading(false)
-  }, [])
+  }, [sedeId])
 
   useEffect(() => {
+    if (!sedeId) return
+    seenIds.current = null // al cambiar de sede no sonar por pedidos ya existentes
+    setLoading(true)
     fetchAll()
     const t = setInterval(fetchAll, POLL_MS)
     return () => clearInterval(t)
-  }, [fetchAll])
+  }, [fetchAll, sedeId])
 
   const activos = pedidos.filter(o => !['Entregado', 'Cancelado'].includes(o.estado))
 

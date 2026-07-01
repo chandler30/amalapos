@@ -1,6 +1,7 @@
 'use client'
 import { useCallback, useEffect, useState } from 'react'
 import { supabase } from '@/lib/supabase'
+import { useSede } from '@/lib/sede'
 import { ESTADOS, PAGOS_ANTICIPADOS, type Pedido } from '@/lib/constants'
 import { fmtMoney, hoyISO } from '@/lib/format'
 import { useToast, Spinner, EmptyState, PageHeader } from '@/components/ui'
@@ -39,6 +40,7 @@ const FILTROS: { key: string; label: string }[] = [
 
 export default function PedidosPage() {
   const toast = useToast()
+  const { sedeId } = useSede()
   const [pedidos, setPedidos] = useState<Pedido[]>([])
   const [loading, setLoading] = useState(true)
   const [filtro, setFiltro] = useState('all')
@@ -46,7 +48,8 @@ export default function PedidosPage() {
   const [detalle, setDetalle] = useState<Pedido | null>(null)
 
   const fetchPedidos = useCallback(async () => {
-    const { data, error } = await supabase.from('pedidos').select('*')
+    if (!sedeId) return
+    const { data, error } = await supabase.from('pedidos').select('*').eq('sede_id', sedeId)
       .order('created_at', { ascending: false }).limit(300)
     if (!error && data) {
       const rows = data as Pedido[]
@@ -54,13 +57,15 @@ export default function PedidosPage() {
       setDetalle(d => (d ? rows.find(o => o.id === d.id) ?? d : d))
     }
     setLoading(false)
-  }, [])
+  }, [sedeId])
 
   useEffect(() => {
+    if (!sedeId) return
+    setLoading(true)
     fetchPedidos()
     const t = setInterval(fetchPedidos, POLL_MS)
     return () => clearInterval(t)
-  }, [fetchPedidos])
+  }, [fetchPedidos, sedeId])
 
   /* Filtrado (portado de renderOrdersTable) */
   const hoy = hoyISO()

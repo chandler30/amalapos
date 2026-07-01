@@ -1,7 +1,8 @@
 'use client'
 import { useEffect, useState } from 'react'
 import { supabase } from '@/lib/supabase'
-import { PageHeader, Switch, useToast } from '@/components/ui'
+import { useSede } from '@/lib/sede'
+import { PageHeader, Spinner, Switch, useToast } from '@/components/ui'
 import { getSoundVol, setSoundVol, playSound } from '@/lib/sound'
 import { IconSun, IconMoon } from '@/components/icons'
 
@@ -19,6 +20,7 @@ function Seccion({ titulo, children }: { titulo: string; children: React.ReactNo
 
 export default function ConfigPage() {
   const toast = useToast()
+  const { sedeId } = useSede()
 
   /* ── Mensajes automáticos ── */
   const [msgs, setMsgs] = useState<Record<string, MsgCfg>>(
@@ -27,8 +29,12 @@ export default function ConfigPage() {
   const [guardandoMsgs, setGuardandoMsgs] = useState(false)
 
   useEffect(() => {
-    (async () => {
-      const { data } = await supabase.from('config').select('valor').eq('clave', 'mensajes_estado').maybeSingle()
+    if (!sedeId) return
+    ;(async () => {
+      // Reset a valores por defecto al cambiar de sede (por si la nueva no tiene config)
+      setMsgs(Object.fromEntries(ESTADOS_MSG.map(e => [e, { texto: '', activo: true }])))
+      const { data } = await supabase.from('config').select('valor')
+        .eq('clave', 'mensajes_estado').eq('sede_id', sedeId).maybeSingle()
       if (!data?.valor) return
       let parsed: Record<string, unknown> = {}
       try { parsed = typeof data.valor === 'string' ? JSON.parse(data.valor) : data.valor } catch { return }
@@ -45,13 +51,14 @@ export default function ConfigPage() {
         return next
       })
     })()
-  }, [])
+  }, [sedeId])
 
   async function guardarMensajes() {
+    if (!sedeId) { toast('Selecciona una sede primero', 'error'); return }
     setGuardandoMsgs(true)
     const { error } = await supabase.from('config').upsert(
-      { clave: 'mensajes_estado', valor: JSON.stringify(msgs), updated_at: new Date().toISOString() },
-      { onConflict: 'clave' }
+      { clave: 'mensajes_estado', sede_id: sedeId, valor: JSON.stringify(msgs), updated_at: new Date().toISOString() },
+      { onConflict: 'clave,sede_id' }
     )
     setGuardandoMsgs(false)
     if (error) { toast('Error al guardar: ' + error.message, 'error'); return }
@@ -88,6 +95,8 @@ export default function ConfigPage() {
       <PageHeader title="Configuración" sub="Mensajes, sonido y cuenta" />
 
       <Seccion titulo="Mensajes automáticos al cliente">
+        {!sedeId ? <Spinner /> : (
+        <>
         <p className="mb-4 text-xs leading-relaxed text-ink3">
           Se envían por WhatsApp al cliente cuando cambias el estado del pedido. Usa{' '}
           <code className="text-brand">{'{pedido}'}</code> (número de pedido) y{' '}
@@ -112,6 +121,8 @@ export default function ConfigPage() {
         <button className="btn btn-primary mt-4" disabled={guardandoMsgs} onClick={guardarMensajes}>
           {guardandoMsgs ? 'Guardando…' : 'Guardar'}
         </button>
+        </>
+        )}
       </Seccion>
 
       <Seccion titulo="Sonido de alertas">

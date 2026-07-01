@@ -1,6 +1,7 @@
 'use client'
 import { useCallback, useEffect, useState } from 'react'
 import { supabase } from '@/lib/supabase'
+import { useSede } from '@/lib/sede'
 import type { Promo } from '@/lib/constants'
 import { Modal, PageHeader, Spinner, EmptyState, Switch, useToast } from '@/components/ui'
 import { IconPencil, IconPlus, IconX } from '@/components/icons'
@@ -33,6 +34,7 @@ const FORM_VACIO: PromoForm = {
 
 export default function PromosPage() {
   const toast = useToast()
+  const { sedeId } = useSede()
   const [promos, setPromos] = useState<Promo[]>([])
   const [loading, setLoading] = useState(true)
   const [open, setOpen] = useState(false)
@@ -41,13 +43,18 @@ export default function PromosPage() {
   const [saving, setSaving] = useState(false)
 
   const load = useCallback(async () => {
-    const { data, error } = await supabase.from('promociones').select('*').order('created_at')
+    if (!sedeId) return
+    const { data, error } = await supabase.from('promociones').select('*').eq('sede_id', sedeId).order('created_at')
     if (error) { toast('Error cargando promociones: ' + error.message, 'error') }
     setPromos((data as Promo[]) || [])
     setLoading(false)
-  }, [toast])
+  }, [toast, sedeId])
 
-  useEffect(() => { load() }, [load])
+  useEffect(() => {
+    if (!sedeId) return
+    setLoading(true)
+    load()
+  }, [load, sedeId])
 
   const set = <K extends keyof PromoForm>(k: K, v: PromoForm[K]) => setForm(f => ({ ...f, [k]: v }))
 
@@ -81,6 +88,7 @@ export default function PromosPage() {
   async function guardar() {
     const codigo = form.codigo.trim(), nombre = form.nombre.trim()
     if (!codigo || !nombre) { toast('Código y nombre son requeridos', 'error'); return }
+    if (!sedeId) { toast('Selecciona una sede primero', 'error'); return }
     setSaving(true)
     const promoData = {
       codigo, nombre,
@@ -97,7 +105,7 @@ export default function PromosPage() {
     }
     const res = editId
       ? await supabase.from('promociones').update(promoData).eq('id', editId)
-      : await supabase.from('promociones').insert(promoData)
+      : await supabase.from('promociones').insert({ ...promoData, sede_id: sedeId })
     setSaving(false)
     if (res.error) { toast('Error: ' + res.error.message, 'error'); return }
     setOpen(false)

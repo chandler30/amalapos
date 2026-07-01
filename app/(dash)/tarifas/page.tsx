@@ -1,6 +1,7 @@
 'use client'
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { supabase } from '@/lib/supabase'
+import { useSede } from '@/lib/sede'
 import type { Tarifa } from '@/lib/constants'
 import { fmtMoney } from '@/lib/format'
 import { EmptyState, Modal, PageHeader, Spinner, useToast } from '@/components/ui'
@@ -15,6 +16,7 @@ const FORM_VACIO: TarifaForm = { id: '', barrio: '', precio: '', zona: '' }
 
 export default function TarifasPage() {
   const toast = useToast()
+  const { sedeId } = useSede()
   const [tarifas, setTarifas] = useState<Tarifa[]>([])
   const [loading, setLoading] = useState(true)
   const [busqueda, setBusqueda] = useState('')
@@ -23,13 +25,18 @@ export default function TarifasPage() {
   const [saving, setSaving] = useState(false)
 
   const fetchTarifas = useCallback(async () => {
-    const { data, error } = await supabase.from('tarifas_barrios').select('*').order('barrio')
+    if (!sedeId) return
+    const { data, error } = await supabase.from('tarifas_barrios').select('*').eq('sede_id', sedeId).order('barrio')
     if (error) toast('Error cargando tarifas: ' + error.message, 'error')
     else setTarifas((data as Tarifa[]) || [])
     setLoading(false)
-  }, [toast])
+  }, [toast, sedeId])
 
-  useEffect(() => { fetchTarifas() }, [fetchTarifas])
+  useEffect(() => {
+    if (!sedeId) return
+    setLoading(true)
+    fetchTarifas()
+  }, [fetchTarifas, sedeId])
 
   const filtradas = useMemo(() => {
     const q = normStr(busqueda)
@@ -59,10 +66,11 @@ export default function TarifasPage() {
       zona: form.zona.trim() || null,
     }
     if (!row.barrio || !row.precio) { toast('Completa barrio y precio', 'error'); return }
+    if (!sedeId) { toast('Selecciona una sede primero', 'error'); return }
     setSaving(true)
     const { error } = form.id
       ? await supabase.from('tarifas_barrios').update(row).eq('id', form.id)
-      : await supabase.from('tarifas_barrios').insert(row)
+      : await supabase.from('tarifas_barrios').insert({ ...row, sede_id: sedeId })
     setSaving(false)
     if (error) { toast('Error: ' + error.message, 'error'); return }
     setModalOpen(false)

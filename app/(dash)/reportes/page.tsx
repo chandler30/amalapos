@@ -1,6 +1,7 @@
 'use client'
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { supabase } from '@/lib/supabase'
+import { useSede } from '@/lib/sede'
 import { ESTADOS, ESTADO_COLOR, METODOS_PAGO, PAGOS_ANTICIPADOS, type Pedido } from '@/lib/constants'
 import { fmtMoney } from '@/lib/format'
 import { EmptyState, PageHeader, Spinner } from '@/components/ui'
@@ -96,6 +97,7 @@ function SectionTitle({ children }: { children: React.ReactNode }) {
 }
 
 export default function ReportesPage() {
+  const { sedeId } = useSede()
   const [orders, setOrders] = useState<Pedido[] | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(false)
@@ -107,17 +109,22 @@ export default function ReportesPage() {
   const [statF, setStatF] = useState('all')
 
   const load = useCallback(async () => {
+    if (!sedeId) return
     setLoading(true)
     const { data, error: err } = await supabase
       .from('pedidos').select('*')
+      .eq('sede_id', sedeId)
       .order('created_at', { ascending: false })
       .limit(3000)
     if (err || !data) { setError(true); setOrders(null) }
     else { setError(false); setOrders(data as Pedido[]) }
     setLoading(false)
-  }, [])
+  }, [sedeId])
 
-  useEffect(() => { load() }, [load])
+  useEffect(() => {
+    if (!sedeId) return
+    load()
+  }, [load, sedeId])
 
   const report = useMemo(() => {
     if (!orders) return null

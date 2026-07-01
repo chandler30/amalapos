@@ -1,6 +1,7 @@
 'use client'
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { supabase } from '@/lib/supabase'
+import { useSede } from '@/lib/sede'
 import { MENU_CATS, type MenuItem } from '@/lib/constants'
 import { fmtMoney } from '@/lib/format'
 import { EmptyState, Modal, PageHeader, Spinner, Switch, useToast } from '@/components/ui'
@@ -29,6 +30,7 @@ const FORM_VACIO: MenuForm = {
 
 export default function MenuPage() {
   const toast = useToast()
+  const { sedeId } = useSede()
   const [items, setItems] = useState<MenuItem[]>([])
   const [loading, setLoading] = useState(true)
   const [busqueda, setBusqueda] = useState('')
@@ -37,13 +39,18 @@ export default function MenuPage() {
   const [saving, setSaving] = useState(false)
 
   const fetchMenu = useCallback(async () => {
-    const { data, error } = await supabase.from('menu').select('*').order('categoria').order('nombre')
+    if (!sedeId) return
+    const { data, error } = await supabase.from('menu').select('*').eq('sede_id', sedeId).order('categoria').order('nombre')
     if (error) toast('Error cargando el menú: ' + error.message, 'error')
     else setItems((data as MenuItem[]) || [])
     setLoading(false)
-  }, [toast])
+  }, [toast, sedeId])
 
-  useEffect(() => { fetchMenu() }, [fetchMenu])
+  useEffect(() => {
+    if (!sedeId) return
+    setLoading(true)
+    fetchMenu()
+  }, [fetchMenu, sedeId])
 
   const grupos = useMemo(() => {
     const q = normStr(busqueda)
@@ -100,10 +107,11 @@ export default function MenuPage() {
       activo: form.activo,
     }
     if (!row.nombre) { toast('Falta el nombre', 'error'); return }
+    if (!sedeId) { toast('Selecciona una sede primero', 'error'); return }
     setSaving(true)
     const { error } = form.id
       ? await supabase.from('menu').update(row).eq('id', form.id)
-      : await supabase.from('menu').insert(row)
+      : await supabase.from('menu').insert({ ...row, sede_id: sedeId })
     setSaving(false)
     if (error) { toast('Error: ' + error.message, 'error'); return }
     setModalOpen(false)

@@ -19,7 +19,7 @@ export const METODOS_PAGO = ['Efectivo', 'Datáfono', 'Nequi', 'Transferencia', 
 export const PAGOS_ANTICIPADOS = ['Nequi', 'Transferencia', 'Llave']
 
 export interface Pedido {
-  id: string; num_pedido: string; fecha: string; hora: string; cliente: string
+  id: string; sede_id?: string | null; num_pedido: string; fecha: string; hora: string; cliente: string
   cedula: string | null; telefono: string; direccion: string; ubicacion: string | null
   referencia: string | null; items: string; cantidad: number; subtotal: number
   descuento: number; total: number; estado: string; metodo_pago: string
@@ -30,13 +30,13 @@ export interface Pedido {
 }
 
 export interface MenuItem {
-  id: string; nombre: string; categoria: string; precio: number; tipo: string | null
+  id: string; sede_id?: string | null; nombre: string; categoria: string; precio: number; tipo: string | null
   sabores: string | null; descripcion: string | null; modificaciones: string | null
   activo: boolean; hora_fin: string | null
 }
 
-export interface Tarifa { id: string; barrio: string; precio: number; zona: string | null }
+export interface Tarifa { id: string; sede_id?: string | null; barrio: string; precio: number; zona: string | null }
 export interface Cliente { id: string; nombre: string; cedula: string | null; telefono: string; user_ns: string; canal: string; total_pedidos: number; gasto_total: number; ultima_visita: string | null }
-export interface Alerta { id: string; cliente: string; telefono: string; razon: string; user_ns: string; chat_link: string | null; estado: string; created_at: string }
-export interface Reserva { id: string; num_reserva: string; cliente: string; telefono: string; motivo: string; fecha_reserva: string; hora_reserva: string; personas: number; tipo: string; notas: string; estado: string }
-export interface Promo { id: string; codigo: string; nombre: string; descripcion: string; activa: boolean; imagen_url: string | null; dias: string | null; hora_inicio: string | null; hora_fin: string | null; activa_festivos: boolean; items: { nombre: string; precio: number }[] }
+export interface Alerta { id: string; sede_id?: string | null; cliente: string; telefono: string; razon: string; user_ns: string; chat_link: string | null; estado: string; created_at: string }
+export interface Reserva { id: string; sede_id?: string | null; num_reserva: string; cliente: string; telefono: string; motivo: string; fecha_reserva: string; hora_reserva: string; personas: number; tipo: string; notas: string; estado: string }
+export interface Promo { id: string; sede_id?: string | null; codigo: string; nombre: string; descripcion: string; activa: boolean; imagen_url: string | null; dias: string | null; hora_inicio: string | null; hora_fin: string | null; activa_festivos: boolean; items: { nombre: string; precio: number }[] }

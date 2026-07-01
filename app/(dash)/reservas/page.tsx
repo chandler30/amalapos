@@ -1,6 +1,7 @@
 'use client'
 import { useCallback, useEffect, useState } from 'react'
 import { supabase } from '@/lib/supabase'
+import { useSede } from '@/lib/sede'
 import type { Reserva } from '@/lib/constants'
 import { useToast, Spinner, EmptyState, PageHeader } from '@/components/ui'
 
@@ -29,18 +30,24 @@ function chipReserva(estado: string): string {
 
 export default function ReservasPage() {
   const toast = useToast()
+  const { sedeId } = useSede()
   const [reservas, setReservas] = useState<Reserva[]>([])
   const [loading, setLoading] = useState(true)
   const [soloNuevas, setSoloNuevas] = useState(true)
 
   const fetchReservas = useCallback(async () => {
-    const { data, error } = await supabase.from('reservas').select('*')
+    if (!sedeId) return
+    const { data, error } = await supabase.from('reservas').select('*').eq('sede_id', sedeId)
       .order('created_at', { ascending: false }).limit(200)
     if (!error && data) setReservas(data as Reserva[])
     setLoading(false)
-  }, [])
+  }, [sedeId])
 
-  useEffect(() => { fetchReservas() }, [fetchReservas])
+  useEffect(() => {
+    if (!sedeId) return
+    setLoading(true)
+    fetchReservas()
+  }, [fetchReservas, sedeId])
 
   /* Portado de updateReservaStatus / confirmReserva / cancelReserva */
   async function actualizar(r: Reserva, estado: string) {
