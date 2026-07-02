@@ -92,12 +92,12 @@ function Field({ label, children, full }: { label: string; children: React.React
 export function OrderDetailModal({ pedido, onClose, onChanged }: {
   pedido: Pedido | null; onClose: () => void; onChanged: () => void
 }) {
-  const [zoom, setZoom] = useState(false)
   return pedido ? <OrderDetailInner pedido={pedido} onClose={onClose} onChanged={onChanged} /> : null
 }
 
 function OrderDetailInner({ pedido: o, onClose, onChanged }: { pedido: Pedido; onClose: () => void; onChanged: () => void }) {
   const toast = useToast()
+  const [zoom, setZoom] = useState(false)
   const el = elapsedFrom(o.created_at)
   const items = (o.items || '').split(',').map(s => s.trim()).filter(Boolean)
 
