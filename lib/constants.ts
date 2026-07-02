@@ -35,7 +35,7 @@ export interface MenuItem {
   activo: boolean; hora_fin: string | null
 }
 
-export interface Tarifa { id: string; sede_id?: string | null; barrio: string; precio: number; zona: string | null }
+export interface Tarifa { id: string; sede_id?: string | null; barrio: string; precio: number; zona: string | null; hora_limite?: string | null }
 export interface Cliente { id: string; nombre: string; cedula: string | null; telefono: string; user_ns: string; canal: string; total_pedidos: number; gasto_total: number; ultima_visita: string | null }
 export interface Alerta { id: string; sede_id?: string | null; cliente: string; telefono: string; razon: string; user_ns: string; chat_link: string | null; estado: string; created_at: string }
 export interface Reserva { id: string; sede_id?: string | null; num_reserva: string; cliente: string; telefono: string; motivo: string; fecha_reserva: string; hora_reserva: string; personas: number; tipo: string; notas: string; estado: string }

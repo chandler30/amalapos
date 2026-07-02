@@ -4,7 +4,7 @@ import { supabase } from '@/lib/supabase'
 import { fmtMoney, elapsedFrom } from '@/lib/format'
 import { playSound } from '@/lib/sound'
 import { Modal, useToast } from '@/components/ui'
-import { IconBag, IconChat, IconMapPin } from '@/components/icons'
+import { IconBag, IconMapPin } from '@/components/icons'
 
 export type ToastFn = (msg: string, kind?: 'success' | 'error' | 'info') => void
 
@@ -101,11 +101,6 @@ function OrderDetailInner({ pedido: o, onClose, onChanged }: { pedido: Pedido; o
       footer={
         <>
           <button className="btn btn-secondary" onClick={onClose}>Cerrar</button>
-          {o.inbox_url && (
-            <a href={o.inbox_url} target="_blank" rel="noopener noreferrer" className="btn btn-primary">
-              <IconChat style={{ width: 16, height: 16 }} /> Abrir chat
-            </a>
-          )}
         </>
       }>
       <div className="mb-3 flex flex-wrap items-center gap-2">

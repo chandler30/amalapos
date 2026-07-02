@@ -5,7 +5,7 @@ import { useSede } from '@/lib/sede'
 import { ESTADOS, PAGOS_ANTICIPADOS, type Pedido } from '@/lib/constants'
 import { fmtMoney, hoyISO } from '@/lib/format'
 import { useToast, Spinner, EmptyState, PageHeader } from '@/components/ui'
-import { IconChat, IconEye } from '@/components/icons'
+import { IconEye } from '@/components/icons'
 import { OrderBadges, OrderDetailModal, updateEstado } from '@/components/orders'
 
 const POLL_MS = 30000
@@ -142,11 +142,6 @@ export default function PedidosPage() {
                         <button className="btn btn-secondary btn-sm" title="Ver detalle" onClick={() => setDetalle(o)}>
                           <IconEye style={{ width: 15, height: 15 }} /> Ver
                         </button>
-                        {o.inbox_url && (
-                          <a href={o.inbox_url} target="_blank" rel="noopener noreferrer" className="btn btn-secondary btn-sm" title="Abrir chat">
-                            <IconChat style={{ width: 15, height: 15 }} />
-                          </a>
-                        )}
                       </div>
                     </td>
                   </tr>

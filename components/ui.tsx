@@ -57,10 +57,10 @@ export function Modal({ open, onClose, title, children, footer, wide }: {
 /* ── Switch ── */
 export function Switch({ checked, onChange, id }: { checked: boolean; onChange: (v: boolean) => void; id?: string }) {
   return (
-    <span className="switch">
+    <label className="switch" onClick={e => e.stopPropagation()}>
       <input type="checkbox" id={id} checked={checked} onChange={e => onChange(e.target.checked)} />
-      <span className="slider" onClick={() => onChange(!checked)} />
-    </span>
+      <span className="slider" />
+    </label>
   )
 }
 

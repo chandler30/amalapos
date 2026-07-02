@@ -6,7 +6,7 @@ import { ESTADOS, PAGOS_ANTICIPADOS, type Pedido, type Alerta } from '@/lib/cons
 import { fmtMoney, elapsedFrom, hoyISO } from '@/lib/format'
 import { playSound } from '@/lib/sound'
 import { useToast, Spinner, EmptyState, PageHeader } from '@/components/ui'
-import { IconChat, IconClock, IconEye, IconMapPin } from '@/components/icons'
+import { IconClock, IconEye, IconMapPin } from '@/components/icons'
 import { StatusChip, OrderBadges, OrderDetailModal, updateEstado, validarPago, esPickup } from '@/components/orders'
 
 const POLL_MS = 15000
@@ -107,11 +107,6 @@ function OrderCard({ pedido: o, onVer, refresh }: { pedido: Pedido; onVer: () =>
           <option value="">{o.estado}</option>
           {estados.filter(s => s !== o.estado).map(s => <option key={s} value={s}>{s}</option>)}
         </select>
-        {o.inbox_url && (
-          <a href={o.inbox_url} target="_blank" rel="noopener noreferrer" className="btn btn-secondary btn-sm" title="Abrir chat">
-            <IconChat style={{ width: 15, height: 15 }} />
-          </a>
-        )}
         <button className="btn btn-secondary btn-sm" onClick={onVer}>
           <IconEye style={{ width: 15, height: 15 }} /> Ver
         </button>
@@ -259,11 +254,6 @@ export default function DashboardPage() {
                         <td>
                           <div className="flex items-center gap-1.5">
                             <button className="btn btn-secondary btn-sm whitespace-nowrap" onClick={() => atenderAlerta(a.id)}>Atendido</button>
-                            {a.chat_link && (
-                              <a href={a.chat_link} target="_blank" rel="noopener noreferrer" className="btn btn-secondary btn-sm" title="Abrir chat">
-                                <IconChat style={{ width: 14, height: 14 }} />
-                              </a>
-                            )}
                           </div>
                         </td>
                       </tr>

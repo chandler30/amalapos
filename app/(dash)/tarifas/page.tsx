@@ -11,8 +11,8 @@ function normStr(s: string): string {
   return s.toUpperCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^A-Z0-9\s]/g, ' ').replace(/\s+/g, ' ').trim()
 }
 
-interface TarifaForm { id: string; barrio: string; precio: string; zona: string }
-const FORM_VACIO: TarifaForm = { id: '', barrio: '', precio: '', zona: '' }
+interface TarifaForm { id: string; barrio: string; precio: string; zona: string; hora_limite: string }
+const FORM_VACIO: TarifaForm = { id: '', barrio: '', precio: '', zona: '', hora_limite: '' }
 
 export default function TarifasPage() {
   const toast = useToast()
@@ -55,6 +55,7 @@ export default function TarifasPage() {
       barrio: t.barrio || '',
       precio: t.precio != null ? String(t.precio) : '',
       zona: t.zona || '',
+      hora_limite: (t.hora_limite || '').slice(0, 5),
     })
     setModalOpen(true)
   }
@@ -64,6 +65,7 @@ export default function TarifasPage() {
       barrio: form.barrio.trim().toUpperCase(),
       precio: parseInt(form.precio) || 0,
       zona: form.zona.trim() || null,
+      hora_limite: form.hora_limite || null,
     }
     if (!row.barrio || !row.precio) { toast('Completa barrio y precio', 'error'); return }
     if (!sedeId) { toast('Selecciona una sede primero', 'error'); return }
@@ -113,6 +115,7 @@ export default function TarifasPage() {
                 <th>Barrio</th>
                 <th>Precio</th>
                 <th>Zona / Nota</th>
+                <th>Domicilio hasta</th>
                 <th className="w-24 text-right">Acciones</th>
               </tr>
             </thead>
@@ -122,6 +125,7 @@ export default function TarifasPage() {
                   <td className="font-semibold text-ink">{t.barrio}</td>
                   <td className="font-bold text-brand">{fmtMoney(t.precio)}</td>
                   <td className="text-ink3">{t.zona || '—'}</td>
+                  <td>{t.hora_limite ? <span className="chip chip-yellow">hasta {String(t.hora_limite).slice(0, 5)}</span> : <span className="text-ink3">—</span>}</td>
                   <td>
                     <div className="flex justify-end gap-1.5">
                       <button className="btn btn-secondary btn-sm !p-1.5" onClick={() => abrirEditar(t)} title="Editar tarifa">
@@ -167,6 +171,12 @@ export default function TarifasPage() {
           <label className="lbl" htmlFor="tf-precio">Precio ($)</label>
           <input id="tf-precio" className="input w-full" type="number" placeholder="6000"
             value={form.precio} onChange={e => setForm(f => ({ ...f, precio: e.target.value }))} />
+        </div>
+        <div className="mb-3">
+          <label className="lbl" htmlFor="tf-limite">Sin domicilio después de (opcional)</label>
+          <input id="tf-limite" className="input w-full" type="time"
+            value={form.hora_limite} onChange={e => setForm(f => ({ ...f, hora_limite: e.target.value }))} />
+          <p className="mt-1 text-[11px] text-ink3">Pasada esta hora, el bot NO ofrece domicilio a este barrio (ej. Serena del Mar: 22:30). Vacío = sin límite.</p>
         </div>
         <div>
           <label className="lbl" htmlFor="tf-zona">Zona / Nota (opcional)</label>

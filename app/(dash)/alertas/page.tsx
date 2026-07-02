@@ -4,7 +4,6 @@ import { supabase } from '@/lib/supabase'
 import { useSede } from '@/lib/sede'
 import type { Alerta } from '@/lib/constants'
 import { useToast, Spinner, EmptyState, PageHeader } from '@/components/ui'
-import { IconChat } from '@/components/icons'
 
 function Pill({ active, onClick, children }: { active: boolean; onClick: () => void; children: React.ReactNode }) {
   return (
@@ -89,11 +88,6 @@ export default function AlertasPage() {
                       <div className="flex items-center gap-1.5">
                         {pendiente && (
                           <button className="btn btn-secondary btn-sm whitespace-nowrap" onClick={() => atender(a)}>Atendido</button>
-                        )}
-                        {a.chat_link && (
-                          <a href={a.chat_link} target="_blank" rel="noopener noreferrer" className="btn btn-primary btn-sm whitespace-nowrap" title="Abrir chat">
-                            <IconChat style={{ width: 14, height: 14 }} /> Chat
-                          </a>
                         )}
                       </div>
                     </td>
