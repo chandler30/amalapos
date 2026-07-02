@@ -1,10 +1,11 @@
 'use client'
+import { useState } from 'react'
 import { ESTADOS, ESTADO_COLOR, type Pedido } from '@/lib/constants'
 import { supabase } from '@/lib/supabase'
 import { fmtMoney, elapsedFrom } from '@/lib/format'
 import { playSound } from '@/lib/sound'
 import { Modal, useToast } from '@/components/ui'
-import { IconBag, IconMapPin } from '@/components/icons'
+import { IconBag, IconMapPin, IconX } from '@/components/icons'
 
 export type ToastFn = (msg: string, kind?: 'success' | 'error' | 'info') => void
 
@@ -91,6 +92,7 @@ function Field({ label, children, full }: { label: string; children: React.React
 export function OrderDetailModal({ pedido, onClose, onChanged }: {
   pedido: Pedido | null; onClose: () => void; onChanged: () => void
 }) {
+  const [zoom, setZoom] = useState(false)
   return pedido ? <OrderDetailInner pedido={pedido} onClose={onClose} onChanged={onChanged} /> : null
 }
 
@@ -170,8 +172,24 @@ function OrderDetailInner({ pedido: o, onClose, onChanged }: { pedido: Pedido; o
             </div>
           )}
           {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src={o.url_comprobante} alt="Comprobante de pago"
-            className="mt-2 max-h-[45vh] w-auto max-w-full rounded-lg border" style={{ borderColor: 'var(--border)' }} />
+          <img src={o.url_comprobante} alt="Comprobante de pago" title="Clic para ampliar"
+            onClick={() => setZoom(true)}
+            className="mt-2 max-h-[45vh] w-auto max-w-full cursor-zoom-in rounded-lg border transition-opacity hover:opacity-90"
+            style={{ borderColor: 'var(--border)' }} />
+          <div className="mt-1 text-[11px] text-ink3">Clic en la imagen para ampliar 🔍</div>
+          {zoom && (
+            <div className="fixed inset-0 z-[400] flex items-center justify-center p-4"
+              style={{ background: 'rgba(0,0,0,0.85)' }} onClick={() => setZoom(false)}>
+              <button className="absolute right-4 top-4 rounded-full p-2 text-white hover:bg-white/10"
+                onClick={() => setZoom(false)} aria-label="Cerrar">
+                <IconX width={26} height={26} />
+              </button>
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img src={o.url_comprobante} alt="Comprobante de pago (ampliado)"
+                className="max-h-[92vh] max-w-[95vw] cursor-zoom-out rounded-lg object-contain shadow-2xl"
+                onClick={e => e.stopPropagation()} onDoubleClick={() => setZoom(false)} />
+            </div>
+          )}
           {o.alerta !== 'PAGO OK' && (
             <button className="btn btn-primary mt-3"
               onClick={() => validarPago(o, toast, () => { onChanged(); onClose() })}>
