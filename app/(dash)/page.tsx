@@ -3,7 +3,7 @@ import { useCallback, useEffect, useRef, useState } from 'react'
 import { supabase } from '@/lib/supabase'
 import { useSede } from '@/lib/sede'
 import { ESTADOS, PAGOS_ANTICIPADOS, type Pedido, type Alerta } from '@/lib/constants'
-import { fmtMoney, elapsedFrom, hoyISO } from '@/lib/format'
+import { fmtMoney, elapsedFrom, hoyISO , fmtHora12 } from '@/lib/format'
 import { playSound } from '@/lib/sound'
 import { useToast, Spinner, EmptyState, PageHeader } from '@/components/ui'
 import { IconClock, IconEye, IconMapPin } from '@/components/icons'
@@ -62,7 +62,7 @@ function OrderCard({ pedido: o, onVer, refresh }: { pedido: Pedido; onVer: () =>
   const toast = useToast()
   const el = elapsedFrom(o.created_at)
   const tarde = el.mins > 45
-  const hora = (o.hora || '').toString().substring(0, 5)
+  const hora = fmtHora12(o.hora)
   const pickup = esPickup(o)
   const estados = ESTADOS.filter(s => (pickup ? s !== 'En camino' : s !== 'Listo para recoger'))
 

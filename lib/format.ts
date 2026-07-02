@@ -17,3 +17,14 @@ export function hoyISO(): string {
   const d = new Date(new Date().toLocaleString('en-US', { timeZone: 'America/Bogota' }))
   return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
 }
+
+// "21:29" / "21:29:00" -> "9:29 pm"
+export function fmtHora12(t: string | null | undefined): string {
+  if (!t) return ''
+  const parts = String(t).split(':')
+  const H = parseInt(parts[0]) || 0
+  const m = (parts[1] || '00').slice(0, 2)
+  const ap = H < 12 ? 'am' : 'pm'
+  const h12 = (H % 12) || 12
+  return `${h12}:${m} ${ap}`
+}

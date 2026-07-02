@@ -38,7 +38,7 @@ function ShellInner({ children }: { children: ReactNode }) {
     setDark(document.documentElement.classList.contains('dark'))
     setSound(getSoundOn())
     const t = setInterval(() => {
-      setClock(new Date().toLocaleTimeString('es-CO', { hour12: false, timeZone: 'America/Bogota' }))
+      setClock(new Date().toLocaleTimeString('es-CO', { hour12: true, timeZone: 'America/Bogota' }))
     }, 1000)
     return () => clearInterval(t)
   }, [])

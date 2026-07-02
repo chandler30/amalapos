@@ -322,9 +322,9 @@ export default function ReportesPage() {
               <VBars gradient="linear-gradient(180deg, var(--blue), var(--teal))"
                 data={r.byHour.map((n, h) => ({
                   val: n,
-                  lbl: h % 3 === 0 ? String(h) : '',
+                  lbl: h % 3 === 0 ? `${(h % 12) || 12}${h < 12 ? 'a' : 'p'}` : '',
                   short: n ? String(n) : '',
-                  tip: `${h}:00 · ${n} pedidos`,
+                  tip: `${(h % 12) || 12}:00 ${h < 12 ? 'am' : 'pm'} · ${n} pedidos`,
                 }))} />
             </div>
             <div className="card p-4">

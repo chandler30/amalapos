@@ -1,4 +1,5 @@
 'use client'
+import { fmtHora12 } from '@/lib/format'
 import { useCallback, useEffect, useState } from 'react'
 import { supabase } from '@/lib/supabase'
 import { useSede } from '@/lib/sede'
@@ -92,7 +93,7 @@ export default function ReservasPage() {
             <tbody>
               {lista.map(r => {
                 const est = (r.estado || '').toUpperCase()
-                const hora = (r.hora_reserva || '').toString().substring(0, 5)
+                const hora = fmtHora12(r.hora_reserva)
                 const notas = [r.motivo, r.notas].filter(Boolean).join(' — ')
                 return (
                   <tr key={r.id}>

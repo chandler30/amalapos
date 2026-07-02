@@ -3,7 +3,7 @@ import { useCallback, useEffect, useMemo, useState } from 'react'
 import { supabase } from '@/lib/supabase'
 import { useSede } from '@/lib/sede'
 import { MENU_CATS, type MenuItem } from '@/lib/constants'
-import { fmtMoney } from '@/lib/format'
+import { fmtMoney , fmtHora12 } from '@/lib/format'
 import { EmptyState, Modal, PageHeader, Spinner, Switch, useToast } from '@/components/ui'
 import { IconCheckCircle, IconClock, IconPencil, IconPlus, IconXCircle } from '@/components/icons'
 
@@ -191,7 +191,7 @@ export default function MenuPage() {
                     {m.sabores && <div className="mt-1.5 text-[11px] text-ink3">Sabores: {m.sabores}</div>}
                     {m.hora_fin && (
                       <div className="mt-1.5 flex items-center gap-1 text-[11px] text-yellow">
-                        <IconClock width={12} height={12} /> Disponible hasta {String(m.hora_fin).slice(0, 5)}
+                        <IconClock width={12} height={12} /> Disponible hasta {fmtHora12(m.hora_fin)}
                       </div>
                     )}
                   </div>

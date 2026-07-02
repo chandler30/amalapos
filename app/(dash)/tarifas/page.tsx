@@ -3,7 +3,7 @@ import { useCallback, useEffect, useMemo, useState } from 'react'
 import { supabase } from '@/lib/supabase'
 import { useSede } from '@/lib/sede'
 import type { Tarifa } from '@/lib/constants'
-import { fmtMoney } from '@/lib/format'
+import { fmtMoney , fmtHora12 } from '@/lib/format'
 import { EmptyState, Modal, PageHeader, Spinner, useToast } from '@/components/ui'
 import { IconPencil, IconPlus, IconTrash } from '@/components/icons'
 
@@ -125,7 +125,7 @@ export default function TarifasPage() {
                   <td className="font-semibold text-ink">{t.barrio}</td>
                   <td className="font-bold text-brand">{fmtMoney(t.precio)}</td>
                   <td className="text-ink3">{t.zona || '—'}</td>
-                  <td>{t.hora_limite ? <span className="chip chip-yellow">hasta {String(t.hora_limite).slice(0, 5)}</span> : <span className="text-ink3">—</span>}</td>
+                  <td>{t.hora_limite ? <span className="chip chip-yellow">hasta {fmtHora12(t.hora_limite)}</span> : <span className="text-ink3">—</span>}</td>
                   <td>
                     <div className="flex justify-end gap-1.5">
                       <button className="btn btn-secondary btn-sm !p-1.5" onClick={() => abrirEditar(t)} title="Editar tarifa">

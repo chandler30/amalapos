@@ -1,4 +1,5 @@
 'use client'
+import { fmtHora12 } from '@/lib/format'
 import { useCallback, useEffect, useState } from 'react'
 import { supabase } from '@/lib/supabase'
 import { useSede } from '@/lib/sede'
@@ -17,7 +18,7 @@ function promoHorarioTexto(p: Promo): string {
   let d = dias.length ? dias.map(x => DIA_LETRA[x] || x).join('·') : 'Todos los días'
   if (p.activa_festivos) d += ' +festivos'
   let h = ''
-  if (p.hora_inicio || p.hora_fin) h = ` · ${(p.hora_inicio || '00:00').slice(0, 5)}–${(p.hora_fin || '23:59').slice(0, 5)}`
+  if (p.hora_inicio || p.hora_fin) h = ` · ${fmtHora12(p.hora_inicio || '00:00')}–${fmtHora12(p.hora_fin || '23:59')}`
   return d + h
 }
 

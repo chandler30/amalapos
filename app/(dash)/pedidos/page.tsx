@@ -3,7 +3,7 @@ import { useCallback, useEffect, useState } from 'react'
 import { supabase } from '@/lib/supabase'
 import { useSede } from '@/lib/sede'
 import { ESTADOS, PAGOS_ANTICIPADOS, type Pedido } from '@/lib/constants'
-import { fmtMoney, hoyISO } from '@/lib/format'
+import { fmtMoney, hoyISO , fmtHora12 } from '@/lib/format'
 import { useToast, Spinner, EmptyState, PageHeader } from '@/components/ui'
 import { IconEye } from '@/components/icons'
 import { OrderBadges, OrderDetailModal, updateEstado } from '@/components/orders'
@@ -109,7 +109,7 @@ export default function PedidosPage() {
             </thead>
             <tbody>
               {filtrados.map(o => {
-                const hora = (o.hora || '').toString().substring(0, 5)
+                const hora = fmtHora12(o.hora)
                 return (
                   <tr key={o.id}>
                     <td className="disp whitespace-nowrap text-brand">{o.num_pedido || '—'}</td>
