@@ -113,7 +113,13 @@ export default function MenuPage() {
       ? await supabase.from('menu').update(row).eq('id', form.id)
       : await supabase.from('menu').insert({ ...row, sede_id: sedeId })
     setSaving(false)
-    if (error) { toast('Error: ' + error.message, 'error'); return }
+    if (error) {
+      const duplicado = error.code === '23505' || error.message.includes('menu_nombre_cat_sede')
+      toast(duplicado
+        ? `Ya existe "${row.nombre}" en ${row.categoria} para esta sede. Puede estar inactivo o filtrado: búscalo y edítalo en lugar de crearlo de nuevo.`
+        : 'Error: ' + error.message, 'error')
+      return
+    }
     setModalOpen(false)
     toast(form.id ? 'Producto actualizado' : 'Producto agregado', 'success')
     await fetchMenu()
