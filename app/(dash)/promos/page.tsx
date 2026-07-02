@@ -217,9 +217,9 @@ export default function PromosPage() {
             <label className="lbl">Productos de la promo (nombre + precio)</label>
             <div className="grid gap-1.5">
               {form.items.map((it, i) => (
-                <div key={i} className="flex gap-1.5">
-                  <input className="input flex-1" value={it.nombre} onChange={e => setItem(i, 'nombre', e.target.value)} placeholder="Nombre del producto" />
-                  <input className="input w-28" type="number" value={it.precio} onChange={e => setItem(i, 'precio', e.target.value)} placeholder="Precio" />
+                <div key={i} className="flex items-center gap-1.5">
+                  <input className="input min-w-0 flex-1" style={{ width: 'auto' }} value={it.nombre} onChange={e => setItem(i, 'nombre', e.target.value)} placeholder="Nombre del producto" />
+                  <input className="input" style={{ width: 110, flex: '0 0 110px' }} type="number" value={it.precio} onChange={e => setItem(i, 'precio', e.target.value)} placeholder="Precio" />
                   <button type="button" className="btn btn-secondary btn-sm" title="Quitar"
                     onClick={() => setForm(f => ({ ...f, items: f.items.filter((_, j) => j !== i) }))}>
                     <IconX width={14} height={14} />
