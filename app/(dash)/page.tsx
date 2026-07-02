@@ -29,7 +29,7 @@ function CompStrip({ pedido: o, onVer, onValidar }: { pedido: Pedido; onVer: () 
     )
   }
 
-  if (alerta.includes('TRANSFERENCIA') || (PAGOS_ANTICIPADOS.includes(o.metodo_pago) && o.url_comprobante)) {
+  if (alerta.includes('TRANSFERENCIA')) {   // solo mientras el pago esté pendiente de validar ('PAGO OK' la oculta)
     return (
       <div className="mt-2 flex flex-wrap items-center gap-2.5 rounded-lg border px-3 py-2.5"
         style={{ borderColor: 'var(--orange)', background: 'var(--orange-soft)' }}>

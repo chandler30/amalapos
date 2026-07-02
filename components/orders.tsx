@@ -56,7 +56,10 @@ export async function notifyStatus(id: string, estado: string, toast: ToastFn): 
 /* ── Cambio de estado (portado de updateOrderStatus) ── */
 export async function updateEstado(pedido: Pedido, nuevoEstado: string, toast: ToastFn, refresh: () => void) {
   if (!nuevoEstado) return
-  const alerta = ['Entregado', 'Cancelado', 'En cocina', 'En camino'].includes(nuevoEstado) ? 'VISTO' : 'NUEVO'
+  // Si el pago ya fue validado, se conserva 'PAGO OK' (si no, la franja de comprobante reaparecería)
+  const alerta = pedido.alerta === 'PAGO OK'
+    ? 'PAGO OK'
+    : (['Entregado', 'Cancelado', 'En cocina', 'En camino'].includes(nuevoEstado) ? 'VISTO' : 'NUEVO')
   const { error } = await supabase.from('pedidos').update({ estado: nuevoEstado, alerta }).eq('id', pedido.id)
   if (error) { toast('Error: ' + error.message, 'error'); return }
   toast(`Estado actualizado: ${nuevoEstado}`, 'success')
@@ -146,7 +149,7 @@ function OrderDetailInner({ pedido: o, onClose, onChanged }: { pedido: Pedido; o
         <div className="flex justify-between py-0.5"><span className="text-ink2">Subtotal</span><span>{fmtMoney(o.subtotal)}</span></div>
         <div className="flex justify-between py-0.5"><span className="text-ink2">Domicilio</span><span>{fmtMoney(o.costo_domicilio)}</span></div>
         <div className="mt-1 flex justify-between border-t pt-2 font-bold" style={{ borderColor: 'var(--border)' }}>
-          <span>Total</span><span className="disp text-lg text-brand">{fmtMoney(o.total)}</span>
+          <span>Total</span><span className="disp text-lg text-green">{fmtMoney(o.total)}</span>
         </div>
       </div>
 
