@@ -21,11 +21,11 @@ function pastHora(hf: string | null): boolean {
 
 interface MenuForm {
   id: string; nombre: string; categoria: string; precio: string; tipo: string
-  sabores: string; descripcion: string; modificaciones: string; hora_fin: string; activo: boolean
+  sabores: string; sabores_agotados: string; descripcion: string; modificaciones: string; hora_fin: string; activo: boolean
 }
 const FORM_VACIO: MenuForm = {
   id: '', nombre: '', categoria: MENU_CATS[0], precio: '', tipo: '',
-  sabores: '', descripcion: '', modificaciones: '', hora_fin: '', activo: true,
+  sabores: '', sabores_agotados: '', descripcion: '', modificaciones: '', hora_fin: '', activo: true,
 }
 
 export default function MenuPage() {
@@ -86,6 +86,7 @@ export default function MenuPage() {
       precio: m.precio != null ? String(m.precio) : '',
       tipo: m.tipo || '',
       sabores: m.sabores || '',
+      sabores_agotados: m.sabores_agotados || '',
       descripcion: m.descripcion || '',
       modificaciones: m.modificaciones || '',
       hora_fin: (m.hora_fin || '').slice(0, 5),
@@ -101,6 +102,12 @@ export default function MenuPage() {
       precio: parseInt(form.precio) || 0,
       tipo: form.tipo.trim() || null,
       sabores: form.sabores.trim() || null,
+      sabores_agotados: (() => {
+        const sab = form.sabores.split(',').map(x => x.trim()).filter(Boolean)
+        const ag = form.sabores_agotados.split(',').map(x => x.trim()).filter(Boolean)
+          .filter(a => sab.some(x => x.toLowerCase() === a.toLowerCase()))
+        return ag.length ? ag.join(', ') : null
+      })(),
       descripcion: form.descripcion.trim() || null,
       modificaciones: form.modificaciones.trim() || null,
       hora_fin: form.hora_fin || null,
@@ -194,7 +201,12 @@ export default function MenuPage() {
                         </button>
                       </div>
                     </div>
-                    {m.sabores && <div className="mt-1.5 text-[11px] text-ink3">Sabores: {m.sabores}</div>}
+                    {m.sabores && (
+                      <div className="mt-1.5 text-[11px] text-ink3">
+                        Sabores: {m.sabores}
+                        {m.sabores_agotados && <span style={{ color: 'var(--danger)' }}> · agotado hoy: {m.sabores_agotados}</span>}
+                      </div>
+                    )}
                     {m.hora_fin && (
                       <div className="mt-1.5 flex items-center gap-1 text-[11px] text-yellow">
                         <IconClock width={12} height={12} /> Disponible hasta {fmtHora12(m.hora_fin)}
@@ -253,6 +265,29 @@ export default function MenuPage() {
             <label className="lbl" htmlFor="am-sabores">Sabores (separa con coma)</label>
             <input id="am-sabores" className="input w-full" type="text" placeholder="Pepsi, Uva, Manzana"
               value={form.sabores} onChange={e => set('sabores')(e.target.value)} />
+            {form.sabores.trim() !== '' && (
+              <div className="mt-2">
+                <div className="lbl">Sabores agotados hoy (clic para marcar)</div>
+                <div className="mt-1 flex flex-wrap gap-1.5">
+                  {form.sabores.split(',').map(x => x.trim()).filter(Boolean).map(sab => {
+                    const ag = form.sabores_agotados.split(',').map(x => x.trim()).filter(Boolean)
+                    const marcado = ag.some(a => a.toLowerCase() === sab.toLowerCase())
+                    return (
+                      <button key={sab} type="button"
+                        className={`chip ${marcado ? 'chip-red' : 'chip-green'} cursor-pointer`}
+                        title={marcado ? 'Clic para volver a disponible' : 'Clic para marcar agotado'}
+                        onClick={() => {
+                          const nuevos = marcado ? ag.filter(a => a.toLowerCase() !== sab.toLowerCase()) : [...ag, sab]
+                          set('sabores_agotados')(nuevos.join(', '))
+                        }}>
+                        {sab}{marcado ? ' · agotado' : ''}
+                      </button>
+                    )
+                  })}
+                </div>
+                <p className="mt-1 text-[11px] text-ink3">El bot no ofrece los agotados y rechaza pedidos que los pidan.</p>
+              </div>
+            )}
           </div>
         </div>
         <div className="mb-3">
