@@ -66,8 +66,17 @@ export default function ConfigPage() {
   }
 
   /* ── Seguimiento automático (nudges) ── */
-  type SegCfg = { reenganche: boolean; recordatorio_pago: boolean; reenganche_min: number; recordatorio_pago_min: number }
-  const SEG_DEFAULT: SegCfg = { reenganche: true, recordatorio_pago: true, reenganche_min: 10, recordatorio_pago_min: 15 }
+  type SegCfg = {
+    reenganche: boolean; recordatorio_pago: boolean
+    reenganche_min: number; recordatorio_pago_min: number
+    reenganche_msg: string; recordatorio_pago_msg: string
+  }
+  const MSG_REENGANCHE_DEFAULT = '¡Hola {cliente}! 😊 Quedaste con el antojo a medias 🍕 ¿Quieres continuar con tu pedido o lo dejamos para otra ocasión? Escríbeme y seguimos 🌮'
+  const MSG_PAGO_DEFAULT = '¡Hola {cliente}! 😊 Tu pedido {pedido} está casi listo para entrar a cocina: solo nos falta el comprobante de pago 🧾 Envíamelo por aquí y arrancamos 👨‍🍳 Si tuviste algún inconveniente con el pago, cuéntame y te ayudo.'
+  const SEG_DEFAULT: SegCfg = {
+    reenganche: true, recordatorio_pago: true, reenganche_min: 10, recordatorio_pago_min: 15,
+    reenganche_msg: MSG_REENGANCHE_DEFAULT, recordatorio_pago_msg: MSG_PAGO_DEFAULT,
+  }
   const [seg, setSeg] = useState<SegCfg>(SEG_DEFAULT)
   const [guardandoSeg, setGuardandoSeg] = useState(false)
   const clampMin = (n: unknown, def: number) => {
@@ -89,6 +98,8 @@ export default function ConfigPage() {
         recordatorio_pago: v.recordatorio_pago !== false,
         reenganche_min: clampMin(v.reenganche_min, 10),
         recordatorio_pago_min: clampMin(v.recordatorio_pago_min, 15),
+        reenganche_msg: (typeof v.reenganche_msg === 'string' && v.reenganche_msg.trim()) ? v.reenganche_msg : MSG_REENGANCHE_DEFAULT,
+        recordatorio_pago_msg: (typeof v.recordatorio_pago_msg === 'string' && v.recordatorio_pago_msg.trim()) ? v.recordatorio_pago_msg : MSG_PAGO_DEFAULT,
       })
     })()
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -100,6 +111,8 @@ export default function ConfigPage() {
       ...next,
       reenganche_min: clampMin(next.reenganche_min, 10),
       recordatorio_pago_min: clampMin(next.recordatorio_pago_min, 15),
+      reenganche_msg: next.reenganche_msg.trim() || MSG_REENGANCHE_DEFAULT,
+      recordatorio_pago_msg: next.recordatorio_pago_msg.trim() || MSG_PAGO_DEFAULT,
     }
     setSeg(limpio)
     setGuardandoSeg(true)
@@ -176,40 +189,54 @@ export default function ConfigPage() {
         {!sedeId ? <Spinner /> : (
         <>
         <p className="mb-4 text-xs leading-relaxed text-ink3">
-          Amalita reengancha sola a los clientes. <b>Tú decides los minutos de espera</b> de cada seguimiento (entre 2 y 240).
+          El seguimiento se envía por WhatsApp con el texto que escribas aquí. <b>Tú decides los minutos de espera</b> de
+          cada uno (entre 2 y 240). Usa <code className="text-brand">{'{cliente}'}</code> (nombre, si lo conocemos) y{' '}
+          <code className="text-brand">{'{pedido}'}</code> (número de pedido, solo en el recordatorio).
           También puedes apagarlo para un cliente puntual desde la página <b>Seguimiento</b>.
           {guardandoSeg && ' Guardando…'}
         </p>
         <div className="grid gap-3">
-          <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl border p-3" style={{ borderColor: 'var(--border)' }}>
-            <span className="min-w-[220px] flex-1">
-              <span className="block text-sm font-bold text-ink">Reenganche por inactividad</span>
-              <span className="block text-xs text-ink3">Saludó y no pidió → Amalita le pregunta si continúa con el pedido o pide en otra ocasión</span>
-            </span>
-            <span className="flex items-center gap-2 text-xs text-ink2">
-              <span>Tras</span>
-              <input type="number" min={2} max={240} className="input !w-20 text-center"
-                value={seg.reenganche_min}
-                onChange={e => setSeg(s => ({ ...s, reenganche_min: Number(e.target.value) }))}
-                onBlur={() => guardarSeguimiento(seg)} />
-              <span>min</span>
-              <Switch checked={seg.reenganche} onChange={v => guardarSeguimiento({ ...seg, reenganche: v })} />
-            </span>
+          <div className="rounded-xl border p-3" style={{ borderColor: 'var(--border)' }}>
+            <div className="mb-2 flex flex-wrap items-center justify-between gap-3">
+              <span className="min-w-[220px] flex-1">
+                <span className="block text-sm font-bold text-ink">Reenganche por inactividad</span>
+                <span className="block text-xs text-ink3">Saludó y no pidió → se le pregunta si continúa con el pedido o pide en otra ocasión</span>
+              </span>
+              <span className="flex items-center gap-2 text-xs text-ink2">
+                <span>Tras</span>
+                <input type="number" min={2} max={240} className="input !w-20 text-center"
+                  value={seg.reenganche_min}
+                  onChange={e => setSeg(s => ({ ...s, reenganche_min: Number(e.target.value) }))}
+                  onBlur={() => guardarSeguimiento(seg)} />
+                <span>min</span>
+                <Switch checked={seg.reenganche} onChange={v => guardarSeguimiento({ ...seg, reenganche: v })} />
+              </span>
+            </div>
+            <textarea className="input w-full" rows={2} value={seg.reenganche_msg}
+              placeholder={MSG_REENGANCHE_DEFAULT}
+              onChange={e => setSeg(s => ({ ...s, reenganche_msg: e.target.value }))}
+              onBlur={() => guardarSeguimiento(seg)} />
           </div>
-          <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl border p-3" style={{ borderColor: 'var(--border)' }}>
-            <span className="min-w-[220px] flex-1">
-              <span className="block text-sm font-bold text-ink">Recordatorio de comprobante</span>
-              <span className="block text-xs text-ink3">Pedido en &quot;Pendiente de pago&quot; sin comprobante → Amalita se lo recuerda</span>
-            </span>
-            <span className="flex items-center gap-2 text-xs text-ink2">
-              <span>Tras</span>
-              <input type="number" min={2} max={240} className="input !w-20 text-center"
-                value={seg.recordatorio_pago_min}
-                onChange={e => setSeg(s => ({ ...s, recordatorio_pago_min: Number(e.target.value) }))}
-                onBlur={() => guardarSeguimiento(seg)} />
-              <span>min</span>
-              <Switch checked={seg.recordatorio_pago} onChange={v => guardarSeguimiento({ ...seg, recordatorio_pago: v })} />
-            </span>
+          <div className="rounded-xl border p-3" style={{ borderColor: 'var(--border)' }}>
+            <div className="mb-2 flex flex-wrap items-center justify-between gap-3">
+              <span className="min-w-[220px] flex-1">
+                <span className="block text-sm font-bold text-ink">Recordatorio de comprobante</span>
+                <span className="block text-xs text-ink3">Pedido en &quot;Pendiente de pago&quot; sin comprobante → se le recuerda por WhatsApp</span>
+              </span>
+              <span className="flex items-center gap-2 text-xs text-ink2">
+                <span>Tras</span>
+                <input type="number" min={2} max={240} className="input !w-20 text-center"
+                  value={seg.recordatorio_pago_min}
+                  onChange={e => setSeg(s => ({ ...s, recordatorio_pago_min: Number(e.target.value) }))}
+                  onBlur={() => guardarSeguimiento(seg)} />
+                <span>min</span>
+                <Switch checked={seg.recordatorio_pago} onChange={v => guardarSeguimiento({ ...seg, recordatorio_pago: v })} />
+              </span>
+            </div>
+            <textarea className="input w-full" rows={3} value={seg.recordatorio_pago_msg}
+              placeholder={MSG_PAGO_DEFAULT}
+              onChange={e => setSeg(s => ({ ...s, recordatorio_pago_msg: e.target.value }))}
+              onBlur={() => guardarSeguimiento(seg)} />
           </div>
         </div>
         </>
