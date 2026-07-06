@@ -9,12 +9,13 @@ import { ToastProvider } from './ui'
 import {
   IconHome, IconReceipt, IconUsers, IconTag, IconBook, IconSparkles,
   IconChart, IconBell, IconCalendar, IconCog, IconSun, IconMoon,
-  IconSpeaker, IconSpeakerOff, IconLogout, IconMapPin,
+  IconSpeaker, IconSpeakerOff, IconLogout, IconMapPin, IconChat,
 } from './icons'
 
 const NAV = [
   { href: '/', label: 'Dashboard', icon: IconHome },
   { href: '/pedidos', label: 'Pedidos', icon: IconReceipt },
+  { href: '/seguimiento', label: 'Seguimiento', icon: IconChat },
   { href: '/clientes', label: 'Clientes', icon: IconUsers },
   { href: '/tarifas', label: 'Tarifas', icon: IconTag },
   { href: '/menu', label: 'Menú', icon: IconBook },

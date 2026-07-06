@@ -65,6 +65,36 @@ export default function ConfigPage() {
     toast('Mensajes guardados', 'success')
   }
 
+  /* ── Seguimiento automático (nudges) ── */
+  const [seg, setSeg] = useState({ reenganche: true, recordatorio_pago: true })
+  const [guardandoSeg, setGuardandoSeg] = useState(false)
+
+  useEffect(() => {
+    if (!sedeId) return
+    ;(async () => {
+      setSeg({ reenganche: true, recordatorio_pago: true })
+      const { data } = await supabase.from('config').select('valor')
+        .eq('clave', 'seguimiento').eq('sede_id', sedeId).maybeSingle()
+      if (!data?.valor) return
+      let v: Record<string, unknown> = {}
+      try { v = typeof data.valor === 'string' ? JSON.parse(data.valor) : data.valor } catch { return }
+      setSeg({ reenganche: v.reenganche !== false, recordatorio_pago: v.recordatorio_pago !== false })
+    })()
+  }, [sedeId])
+
+  async function guardarSeguimiento(next: { reenganche: boolean; recordatorio_pago: boolean }) {
+    if (!sedeId) { toast('Selecciona una sede primero', 'error'); return }
+    setSeg(next)
+    setGuardandoSeg(true)
+    const { error } = await supabase.from('config').upsert(
+      { clave: 'seguimiento', sede_id: sedeId, valor: JSON.stringify(next), updated_at: new Date().toISOString() },
+      { onConflict: 'clave,sede_id' }
+    )
+    setGuardandoSeg(false)
+    if (error) { toast('Error al guardar: ' + error.message, 'error'); return }
+    toast('Seguimiento actualizado', 'success')
+  }
+
   /* ── Sonido ── */
   const [vol, setVol] = useState(1.2)
   useEffect(() => { setVol(getSoundVol()) }, [])
@@ -92,7 +122,7 @@ export default function ConfigPage() {
 
   return (
     <div>
-      <PageHeader title="Configuración" sub="Mensajes, sonido y cuenta" />
+      <PageHeader title="Configuración" sub="Mensajes, seguimiento, sonido y cuenta" />
 
       <Seccion titulo="Mensajes automáticos al cliente">
         {!sedeId ? <Spinner /> : (
@@ -121,6 +151,35 @@ export default function ConfigPage() {
         <button className="btn btn-primary mt-4" disabled={guardandoMsgs} onClick={guardarMensajes}>
           {guardandoMsgs ? 'Guardando…' : 'Guardar'}
         </button>
+        </>
+        )}
+      </Seccion>
+
+      <Seccion titulo="Seguimiento automático (Amalita)">
+        {!sedeId ? <Spinner /> : (
+        <>
+        <p className="mb-4 text-xs leading-relaxed text-ink3">
+          Amalita reengancha sola a los clientes: si alguien saluda y a los <b>10 minutos</b> no ha pedido, le pregunta
+          si desea continuar; si un pedido lleva <b>15 minutos</b> esperando el comprobante, se lo recuerda.
+          También puedes apagarlo para un cliente puntual desde la página <b>Seguimiento</b>.
+          {guardandoSeg && ' Guardando…'}
+        </p>
+        <div className="grid gap-3">
+          <label className="flex cursor-pointer items-center justify-between gap-3 rounded-xl border p-3" style={{ borderColor: 'var(--border)' }}>
+            <span>
+              <span className="block text-sm font-bold text-ink">Reenganche por inactividad</span>
+              <span className="block text-xs text-ink3">Saludó y no pidió en 10 min → Amalita le pregunta si continúa con el pedido</span>
+            </span>
+            <Switch checked={seg.reenganche} onChange={v => guardarSeguimiento({ ...seg, reenganche: v })} />
+          </label>
+          <label className="flex cursor-pointer items-center justify-between gap-3 rounded-xl border p-3" style={{ borderColor: 'var(--border)' }}>
+            <span>
+              <span className="block text-sm font-bold text-ink">Recordatorio de comprobante</span>
+              <span className="block text-xs text-ink3">Pedido en &quot;Pendiente de pago&quot; 15 min sin comprobante → Amalita se lo recuerda</span>
+            </span>
+            <Switch checked={seg.recordatorio_pago} onChange={v => guardarSeguimiento({ ...seg, recordatorio_pago: v })} />
+          </label>
+        </div>
         </>
         )}
       </Seccion>
