@@ -66,28 +66,45 @@ export default function ConfigPage() {
   }
 
   /* ── Seguimiento automático (nudges) ── */
-  const [seg, setSeg] = useState({ reenganche: true, recordatorio_pago: true })
+  type SegCfg = { reenganche: boolean; recordatorio_pago: boolean; reenganche_min: number; recordatorio_pago_min: number }
+  const SEG_DEFAULT: SegCfg = { reenganche: true, recordatorio_pago: true, reenganche_min: 10, recordatorio_pago_min: 15 }
+  const [seg, setSeg] = useState<SegCfg>(SEG_DEFAULT)
   const [guardandoSeg, setGuardandoSeg] = useState(false)
+  const clampMin = (n: unknown, def: number) => {
+    const x = Number(n)
+    return Number.isFinite(x) && x >= 2 && x <= 240 ? Math.round(x) : def
+  }
 
   useEffect(() => {
     if (!sedeId) return
     ;(async () => {
-      setSeg({ reenganche: true, recordatorio_pago: true })
+      setSeg(SEG_DEFAULT)
       const { data } = await supabase.from('config').select('valor')
         .eq('clave', 'seguimiento').eq('sede_id', sedeId).maybeSingle()
       if (!data?.valor) return
       let v: Record<string, unknown> = {}
       try { v = typeof data.valor === 'string' ? JSON.parse(data.valor) : data.valor } catch { return }
-      setSeg({ reenganche: v.reenganche !== false, recordatorio_pago: v.recordatorio_pago !== false })
+      setSeg({
+        reenganche: v.reenganche !== false,
+        recordatorio_pago: v.recordatorio_pago !== false,
+        reenganche_min: clampMin(v.reenganche_min, 10),
+        recordatorio_pago_min: clampMin(v.recordatorio_pago_min, 15),
+      })
     })()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [sedeId])
 
-  async function guardarSeguimiento(next: { reenganche: boolean; recordatorio_pago: boolean }) {
+  async function guardarSeguimiento(next: SegCfg) {
     if (!sedeId) { toast('Selecciona una sede primero', 'error'); return }
-    setSeg(next)
+    const limpio: SegCfg = {
+      ...next,
+      reenganche_min: clampMin(next.reenganche_min, 10),
+      recordatorio_pago_min: clampMin(next.recordatorio_pago_min, 15),
+    }
+    setSeg(limpio)
     setGuardandoSeg(true)
     const { error } = await supabase.from('config').upsert(
-      { clave: 'seguimiento', sede_id: sedeId, valor: JSON.stringify(next), updated_at: new Date().toISOString() },
+      { clave: 'seguimiento', sede_id: sedeId, valor: JSON.stringify(limpio), updated_at: new Date().toISOString() },
       { onConflict: 'clave,sede_id' }
     )
     setGuardandoSeg(false)
@@ -159,26 +176,41 @@ export default function ConfigPage() {
         {!sedeId ? <Spinner /> : (
         <>
         <p className="mb-4 text-xs leading-relaxed text-ink3">
-          Amalita reengancha sola a los clientes: si alguien saluda y a los <b>10 minutos</b> no ha pedido, le pregunta
-          si desea continuar; si un pedido lleva <b>15 minutos</b> esperando el comprobante, se lo recuerda.
+          Amalita reengancha sola a los clientes. <b>Tú decides los minutos de espera</b> de cada seguimiento (entre 2 y 240).
           También puedes apagarlo para un cliente puntual desde la página <b>Seguimiento</b>.
           {guardandoSeg && ' Guardando…'}
         </p>
         <div className="grid gap-3">
-          <label className="flex cursor-pointer items-center justify-between gap-3 rounded-xl border p-3" style={{ borderColor: 'var(--border)' }}>
-            <span>
+          <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl border p-3" style={{ borderColor: 'var(--border)' }}>
+            <span className="min-w-[220px] flex-1">
               <span className="block text-sm font-bold text-ink">Reenganche por inactividad</span>
-              <span className="block text-xs text-ink3">Saludó y no pidió en 10 min → Amalita le pregunta si continúa con el pedido</span>
+              <span className="block text-xs text-ink3">Saludó y no pidió → Amalita le pregunta si continúa con el pedido o pide en otra ocasión</span>
             </span>
-            <Switch checked={seg.reenganche} onChange={v => guardarSeguimiento({ ...seg, reenganche: v })} />
-          </label>
-          <label className="flex cursor-pointer items-center justify-between gap-3 rounded-xl border p-3" style={{ borderColor: 'var(--border)' }}>
-            <span>
+            <span className="flex items-center gap-2 text-xs text-ink2">
+              <span>Tras</span>
+              <input type="number" min={2} max={240} className="input !w-20 text-center"
+                value={seg.reenganche_min}
+                onChange={e => setSeg(s => ({ ...s, reenganche_min: Number(e.target.value) }))}
+                onBlur={() => guardarSeguimiento(seg)} />
+              <span>min</span>
+              <Switch checked={seg.reenganche} onChange={v => guardarSeguimiento({ ...seg, reenganche: v })} />
+            </span>
+          </div>
+          <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl border p-3" style={{ borderColor: 'var(--border)' }}>
+            <span className="min-w-[220px] flex-1">
               <span className="block text-sm font-bold text-ink">Recordatorio de comprobante</span>
-              <span className="block text-xs text-ink3">Pedido en &quot;Pendiente de pago&quot; 15 min sin comprobante → Amalita se lo recuerda</span>
+              <span className="block text-xs text-ink3">Pedido en &quot;Pendiente de pago&quot; sin comprobante → Amalita se lo recuerda</span>
             </span>
-            <Switch checked={seg.recordatorio_pago} onChange={v => guardarSeguimiento({ ...seg, recordatorio_pago: v })} />
-          </label>
+            <span className="flex items-center gap-2 text-xs text-ink2">
+              <span>Tras</span>
+              <input type="number" min={2} max={240} className="input !w-20 text-center"
+                value={seg.recordatorio_pago_min}
+                onChange={e => setSeg(s => ({ ...s, recordatorio_pago_min: Number(e.target.value) }))}
+                onBlur={() => guardarSeguimiento(seg)} />
+              <span>min</span>
+              <Switch checked={seg.recordatorio_pago} onChange={v => guardarSeguimiento({ ...seg, recordatorio_pago: v })} />
+            </span>
+          </div>
         </div>
         </>
         )}

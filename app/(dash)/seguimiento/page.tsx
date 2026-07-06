@@ -92,8 +92,9 @@ export default function SeguimientoPage() {
       </PageHeader>
 
       <p className="mb-4 text-xs leading-relaxed text-ink3">
-        Cada fila es una conversación (desde que el cliente saluda). Si a los 10 minutos no ha pedido, el sistema
-        despierta a Amalita para reengancharlo; si su pedido queda esperando comprobante, se le recuerda a los 15 minutos.
+        Cada fila es una conversación (desde que el cliente saluda). Si pasa el tiempo configurado sin que pida, el sistema
+        despierta a Amalita para reengancharlo; igual con los pedidos que quedan esperando comprobante.
+        Los minutos y los interruptores generales se ajustan en <b>Config → Seguimiento automático</b>.
         Apaga el switch de un cliente para que NO se le envíe ningún seguimiento en esa conversación.
       </p>
 
