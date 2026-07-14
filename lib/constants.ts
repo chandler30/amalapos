@@ -32,7 +32,7 @@ export interface Pedido {
 export interface MenuItem {
   id: string; sede_id?: string | null; nombre: string; categoria: string; precio: number; tipo: string | null
   sabores: string | null; sabores_agotados?: string | null; descripcion: string | null; modificaciones: string | null
-  activo: boolean; hora_fin: string | null
+  activo: boolean; hora_fin: string | null; alias?: string | null
 }
 
 export interface Tarifa { id: string; sede_id?: string | null; barrio: string; precio: number; zona: string | null; hora_limite?: string | null }

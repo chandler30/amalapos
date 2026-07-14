@@ -21,11 +21,11 @@ function pastHora(hf: string | null): boolean {
 
 interface MenuForm {
   id: string; nombre: string; categoria: string; precio: string; tipo: string
-  sabores: string; sabores_agotados: string; descripcion: string; modificaciones: string; hora_fin: string; activo: boolean
+  sabores: string; sabores_agotados: string; alias: string; descripcion: string; modificaciones: string; hora_fin: string; activo: boolean
 }
 const FORM_VACIO: MenuForm = {
   id: '', nombre: '', categoria: MENU_CATS[0], precio: '', tipo: '',
-  sabores: '', sabores_agotados: '', descripcion: '', modificaciones: '', hora_fin: '', activo: true,
+  sabores: '', sabores_agotados: '', alias: '', descripcion: '', modificaciones: '', hora_fin: '', activo: true,
 }
 
 export default function MenuPage() {
@@ -87,6 +87,7 @@ export default function MenuPage() {
       tipo: m.tipo || '',
       sabores: m.sabores || '',
       sabores_agotados: m.sabores_agotados || '',
+      alias: m.alias || '',
       descripcion: m.descripcion || '',
       modificaciones: m.modificaciones || '',
       hora_fin: (m.hora_fin || '').slice(0, 5),
@@ -108,6 +109,7 @@ export default function MenuPage() {
           .filter(a => sab.some(x => x.toLowerCase() === a.toLowerCase()))
         return ag.length ? ag.join(', ') : null
       })(),
+      alias: form.alias.trim() || null,
       descripcion: form.descripcion.trim() || null,
       modificaciones: form.modificaciones.trim() || null,
       hora_fin: form.hora_fin || null,
@@ -289,6 +291,12 @@ export default function MenuPage() {
               </div>
             )}
           </div>
+        </div>
+        <div className="mb-3">
+          <label className="lbl" htmlFor="am-alias">También lo llaman… (sinónimos, separa con coma)</label>
+          <input id="am-alias" className="input w-full" type="text" placeholder="carne, hongos, coca"
+            value={form.alias} onChange={e => set('alias')(e.target.value)} />
+          <p className="mt-1 text-[11px] text-ink3">Palabras con las que la gente pide este producto. El bot las usa para encontrarlo (ej. &quot;carne&quot; → Res, &quot;coca&quot; → Coca Cola).</p>
         </div>
         <div className="mb-3">
           <label className="lbl" htmlFor="am-desc">Descripción</label>
